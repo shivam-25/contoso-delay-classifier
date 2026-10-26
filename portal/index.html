@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contoso Delay Classifier</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#fff; --ink:#15181d; --muted:#5c6673;
+    --line:#e3e6ea; --accent:#0a66c2; --late:#b4232c; --ontime:#13795b;
+    --radius:10px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0f1115; --card:#171a20; --ink:#e8eaed; --muted:#9aa4b2;
+      --line:#272c35; --accent:#4c9fe8; --late:#ff6b6b; --ontime:#3ecf96;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0f1115; --card:#171a20; --ink:#e8eaed; --muted:#9aa4b2;
+    --line:#272c35; --accent:#4c9fe8; --late:#ff6b6b; --ontime:#3ecf96;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1040px;margin:0 auto;padding:28px 16px 56px}
+  header{margin-bottom:22px}
+  h1{font-size:22px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:13px}
+  .grid{display:grid;grid-template-columns:1fr;gap:18px}
+  @media(min-width:880px){.grid{grid-template-columns:1.1fr .9fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+  h2{font-size:14px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:0 0 14px}
+  label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+  .f{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  input,select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;
+               background:var(--bg);color:var(--ink);font-size:14px}
+  button{margin-top:14px;width:100%;padding:11px;border:0;border-radius:7px;background:var(--accent);
+         color:#fff;font-size:15px;font-weight:600;cursor:pointer}
+  button:disabled{opacity:.6;cursor:progress}
+  .result{margin-top:16px;padding:16px;border-radius:var(--radius);border:1px solid var(--line);display:none}
+  .result.show{display:block}
+  .verdict{font-size:21px;font-weight:700;margin-bottom:6px}
+  .late .verdict{color:var(--late)} .ontime .verdict{color:var(--ontime)}
+  .meta{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .bar{height:7px;background:var(--line);border-radius:4px;overflow:hidden;margin:10px 0 8px}
+  .bar>i{display:block;height:100%;background:var(--accent)}
+  .err{border-color:var(--late);color:var(--late);font-size:13px}
+  .err ul{margin:6px 0 0 18px;padding:0}
+  .tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .tile{border:1px solid var(--line);border-radius:8px;padding:11px}
+  .tile b{display:block;font-size:19px;font-variant-numeric:tabular-nums}
+  .tile span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}
+  th,td{text-align:left;padding:6px 4px;border-bottom:1px solid var(--line);
+        font-variant-numeric:tabular-nums;white-space:nowrap}
+  th{color:var(--muted);font-weight:600}
+  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px}
+  .ok{background:var(--ontime)} .bad{background:var(--late)}
+  footer{margin-top:20px;font-size:12px;color:var(--muted)}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Contoso Delay Classifier</h1>
+    <div class="sub">Will this order be delivered late? Model <code id="mver">loading…</code></div>
+  </header>
+
+  <div class="grid">
+    <section class="card">
+      <h2>Score an order</h2>
+      <form id="f">
+        <div class="f">
+          <div>
+            <label for="carrier">Carrier</label>
+            <select id="carrier" name="carrier">
+              <option>BlueDart</option><option>Delhivery</option>
+              <option>EcomExp</option><option>IndiaPost</option>
+            </select>
+          </div>
+          <div><label for="distance_km">Distance (km)</label>
+               <input id="distance_km" name="distance_km" type="number" value="1200" min="0" max="10000"></div>
+          <div><label for="weight_kg">Weight (kg)</label>
+               <input id="weight_kg" name="weight_kg" type="number" step="0.01" value="3.5" min="0" max="1000"></div>
+          <div><label for="items">Items</label>
+               <input id="items" name="items" type="number" value="5" min="1" max="1000"></div>
+          <div><label for="order_hour">Order hour (0-23)</label>
+               <input id="order_hour" name="order_hour" type="number" value="14" min="0" max="23"></div>
+          <div><label for="is_sale_day">Sale day</label>
+               <select id="is_sale_day" name="is_sale_day"><option value="0">No</option><option value="1">Yes</option></select></div>
+          <div><label for="warehouse_backlog">Warehouse backlog</label>
+               <input id="warehouse_backlog" name="warehouse_backlog" type="number" value="42" min="0" max="1000"></div>
+          <div><label for="weather_index">Weather index (0-1)</label>
+               <input id="weather_index" name="weather_index" type="number" step="0.001" value="0.25" min="0" max="1"></div>
+        </div>
+        <button id="go" type="submit">Predict</button>
+      </form>
+      <div id="out" class="result"></div>
+    </section>
+
+    <section class="card">
+      <h2>Service health <span class="sub" id="live"></span></h2>
+      <div class="tiles">
+        <div class="tile"><span>p50 latency</span><b id="p50">—</b></div>
+        <div class="tile"><span>p95 latency</span><b id="p95">—</b></div>
+        <div class="tile"><span>error rate</span><b id="erate">—</b></div>
+        <div class="tile"><span>requests</span><b id="count">—</b></div>
+      </div>
+      <h2 style="margin-top:18px">Recent requests</h2>
+      <div id="recent" class="sub">—</div>
+      <footer id="note"></footer>
+    </section>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+$("f").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const body = Object.fromEntries(new FormData($("f")).entries());
+  $("go").disabled = true;
+  const out = $("out");
+  try {
+    const t0 = performance.now();
+    const r = await fetch("/api/predict", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const rtt = (performance.now() - t0).toFixed(0);
+    const j = await r.json();
+    if (!r.ok) {
+      out.className = "result show err";
+      out.innerHTML = `<b>Rejected (${r.status})</b><ul>` +
+        (j.details || [j.error || "unknown error"]).map((d) => `<li>${esc(d)}</li>`).join("") + "</ul>";
+    } else {
+      const pct = (j.probability * 100).toFixed(1);
+      out.className = "result show " + (j.delayed ? "late" : "ontime");
+      out.innerHTML =
+        `<div class="verdict">${esc(j.label)}</div>` +
+        `<div class="bar"><i style="width:${pct}%"></i></div>` +
+        `<div class="meta">P(delayed) = <b>${pct}%</b> · threshold ${j.threshold} · ` +
+        `server ${j.latency_ms} ms · round-trip ${rtt} ms<br>${esc(j.model)}</div>`;
+    }
+  } catch (err) {
+    out.className = "result show err";
+    out.textContent = "Network error: " + err.message;
+  } finally {
+    $("go").disabled = false;
+    refresh();
+  }
+});
+
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+async function refresh() {
+  try {
+    const r = await fetch("/api/metrics?limit=200", { cache: "no-store" });
+    const m = await r.json();
+    $("mver").textContent = m.model || "unknown";
+    $("p50").textContent = m.latency_ms?.p50 != null ? m.latency_ms.p50 + " ms" : "—";
+    $("p95").textContent = m.latency_ms?.p95 != null ? m.latency_ms.p95 + " ms" : "—";
+    $("erate").textContent = m.error_rate_pct != null ? m.error_rate_pct + " %" : "—";
+    $("count").textContent = m.total_requests ?? "—";
+    $("live").textContent = m.cosmos_connected ? "· live from Cosmos DB" : "· Cosmos not connected";
+    $("note").textContent = m.note || (m.error ? m.error + ": " + (m.detail || "") : "");
+    if (m.recent?.length) {
+      $("recent").innerHTML =
+        "<table><tr><th>time</th><th>status</th><th>ms</th><th>verdict</th></tr>" +
+        m.recent.map((x) =>
+          `<tr><td>${esc((x.ts || "").slice(11, 19))}</td>` +
+          `<td><span class="dot ${x.status < 400 ? "ok" : "bad"}"></span>${x.status}</td>` +
+          `<td>${x.latency_ms ?? ""}</td><td>${esc(x.label || "—")}</td></tr>`).join("") +
+        "</table>";
+    } else {
+      $("recent").textContent = m.cosmos_connected ? "No requests logged yet." : "—";
+    }
+  } catch (err) {
+    $("live").textContent = "· metrics unavailable";
+  }
+}
+refresh();
+setInterval(refresh, 10000);
+</script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+==> resource group rg-contoso-delay in centralindia
+==> Azure SQL server sql-contoso-31533
+==> Azure SQL database contosodelay (Basic)
+==> Cosmos DB cosmos-contoso-31533 (serverless)

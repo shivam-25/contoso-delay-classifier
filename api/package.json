@@ -1,0 +1,9 @@
+{
+  "name": "contoso-delay-api",
+  "version": "1.0.0",
+  "description": "Azure Functions API for the Contoso delay classifier",
+  "main": "index.js",
+  "dependencies": {
+    "@azure/cosmos": "4.2.0"
+  }
+}

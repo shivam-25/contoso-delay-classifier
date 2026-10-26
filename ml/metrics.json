@@ -1,0 +1,30 @@
+[
+  {
+    "model": "LogisticRegression",
+    "auc": 0.7425,
+    "precision": 0.3394,
+    "recall": 0.6731,
+    "f1": 0.4513,
+    "accuracy": 0.7045,
+    "confusion": {
+      "tn": 1166,
+      "fp": 473,
+      "fn": 118,
+      "tp": 243
+    }
+  },
+  {
+    "model": "HistGradientBoosting",
+    "auc": 0.7205,
+    "precision": 0.4841,
+    "recall": 0.169,
+    "f1": 0.2505,
+    "accuracy": 0.8175,
+    "confusion": {
+      "tn": 1574,
+      "fp": 65,
+      "fn": 300,
+      "tp": 61
+    }
+  }
+]
