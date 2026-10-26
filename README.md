@@ -30,7 +30,7 @@ rows (`scripts/parity_check`).
 
 `sql/01_schema.sql` creates `dbo.OrderHistory` (typed, with a `CHECK` on `order_hour`) plus
 `dbo.vw_DelayTraining`, the view the model trains on, so features and analysis can't drift apart.
-Three indexes back the three queries below.
+Three indexes back the three queries below. All **10,000 rows are loaded into Azure SQL** (training view: 10,000 rows) and the results below are the actual output of `sql/02_analysis_queries.sql` run against the database, reproduced by `scripts/load_sql.py`.
 
 `sql/02_analysis_queries.sql` answers all three. Every query returns a **rate**, not a count —
 counts would just rank by volume. Results on the 10,000 rows (overall delay rate **18.07%**):
