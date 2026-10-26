@@ -1,20 +1,27 @@
 // Shared scoring + Cosmos helpers for the Contoso delay API.
 // The model is plain JSON weights, so scoring needs no Python runtime.
-const model = require("./model.json");
-const { CosmosClient } = require("@azure/cosmos");
+const model = require("../model.json");
 
 const DB = process.env.COSMOS_DB || "contoso";
 const REQUESTS = process.env.COSMOS_REQUESTS_CONTAINER || "requests";
 const RUNS = process.env.COSMOS_RUNS_CONTAINER || "model_runs";
 
 let _client = null;
-// Lazily built so a missing key degrades to "logging off" instead of a 500.
+let _tried = false;
+// Built lazily, and the SDK itself is required lazily: a missing key OR a
+// missing module degrades to "logging off" rather than failing every request.
 function cosmos() {
-  if (_client) return _client;
+  if (_client || _tried) return _client;
+  _tried = true;
   const endpoint = process.env.COSMOS_ENDPOINT;
   const key = process.env.COSMOS_KEY;
   if (!endpoint || !key) return null;
-  _client = new CosmosClient({ endpoint, key });
+  try {
+    const { CosmosClient } = require("@azure/cosmos");
+    _client = new CosmosClient({ endpoint, key });
+  } catch (err) {
+    _client = null;
+  }
   return _client;
 }
 

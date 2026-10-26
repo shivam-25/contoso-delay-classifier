@@ -1,0 +1,12 @@
+{
+  "navigationFallback": { "rewrite": "/index.html", "exclude": ["/api/*"] },
+  "globalHeaders": {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "no-referrer"
+  },
+  "routes": [
+    { "route": "/api/predict", "methods": ["POST"], "allowedRoles": ["anonymous"] },
+    { "route": "/api/metrics", "methods": ["GET"],  "allowedRoles": ["anonymous"] }
+  ]
+}

@@ -2,3 +2,11 @@
 ==> Azure SQL server sql-contoso-31533
 ==> Azure SQL database contosodelay (Basic)
 ==> Cosmos DB cosmos-contoso-31533 (serverless)
+==> Static Web App swa-contoso-31533
+/opt/homebrew/Caskroom/azure-cli/2.91.0/libexec/lib/python3.14/site-packages/azure/mgmt/web/models/_models.py:19865: SyntaxWarning: "\S" is an invalid escape sequence. Such sequences will not work in the future. Did you mean "\\S"? A raw string is also an option.
+  the time zones listed under HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows
+==> wiring server-side app settings (keys never reach the browser)
+WARNING: App settings have been redacted. Use `az staticwebapp appsettings list` to view.
+
+PROVISIONED. Portal: https://blue-river-0b185dd00.4.azurestaticapps.net
+(.env.local written - it is gitignored)

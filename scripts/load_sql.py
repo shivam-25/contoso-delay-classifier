@@ -19,7 +19,7 @@ def run_batches(cur, sql):
 def main():
     print(f"connecting to {SERVER}/{DB} ...")
     conn = pymssql.connect(server=SERVER, user=USER, password=PWD,
-                           database=DB, timeout=60, login_timeout=60)
+                           database=DB, timeout=300, login_timeout=60)
     cur = conn.cursor()
 
     print("applying schema + training view ...")

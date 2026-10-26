@@ -1,5 +1,7 @@
 # Contoso Delay Classifier on Azure
 
+**🌐 Live portal:** https://blue-river-0b185dd00.4.azurestaticapps.net
+
 Predicts whether a Contoso order will be **delivered late**, end to end: Azure SQL → trained
 classifier → Azure Functions API → Static Web App portal, with every request logged to Cosmos DB
 and surfaced as live p50/p95 latency and error rate.
@@ -100,6 +102,31 @@ Confusion matrices (test set): LogReg `tn=1166 fp=473 fn=118 tp=243` · HistGB `
 - `GET /api/metrics` — p50/p95/min/max latency, error rate, request count and the 10 most recent
   requests, read back out of Cosmos.
 - `portal/index.html` — one page, no build step, light/dark aware, polls metrics every 10s.
+
+## Verified live results
+
+Measured against the deployed app (`scripts/loadtest.sh`):
+
+| Check | Result |
+|---|---|
+| Load test — 120 requests, concurrency 12 | **120/120 HTTP 200** |
+| Server-side latency (Cosmos-logged) | **p50 0.14 ms · p95 0.45 ms** |
+| Failure test — malformed payload | **HTTP 400** with 8 per-field reasons, never a 500 |
+| Error rate over the window | **0.82%** (the single deliberate 400) |
+| Requests logged to Cosmos `requests` | **122** |
+| `model_runs` documents | 2 (LogReg + HistGB, with AUC/F1/recall) |
+| Scoring parity, Node vs scikit-learn | **0.0 absolute difference** |
+
+Example live call:
+
+```bash
+curl -X POST https://blue-river-0b185dd00.4.azurestaticapps.net/api/predict \
+  -H 'Content-Type: application/json' \
+  -d '{"carrier":"IndiaPost","distance_km":1500,"weight_kg":4.2,"items":5,
+       "order_hour":18,"is_sale_day":1,"warehouse_backlog":55,"weather_index":0.6}'
+# {"label":"Likely delayed","probability":0.9599,"threshold":0.5,
+#  "model":"contoso-delay-lr@1.0.0","latency_ms":1.35}
+```
 
 ## Area E — observability
 
